@@ -37,6 +37,12 @@ board, should you not get a cable or get the wrong one, is to check the DIP
 switches: according to the Deskthority wiki, none of the PS/2 models have one;
 with that said, some USB models also don't have one.
 
+# Building info
+Copy the repo inside keyboards/exentio in the QMK repo, then build with the following command:  
+`qmk compile -kb exentio/ps2usb_realforce/boards/bluepill_ld -km default`  
+The default layout is the normal RealForce 91, change to `-km 89` for the RealForce 89.  
+~~Truth is, they're basically the same, the 91 works on both.~~
+
 ## References
 The code I based this one on: https://github.com/qmk/qmk_firmware/tree/master/keyboards/converter/ibm_terminal  
 Where I got most codes: https://github.com/nsd20463/ps2_kbd_to_usb_adapter/blob/master/keycodes.c  
