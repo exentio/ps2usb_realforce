@@ -3,15 +3,14 @@
 # USB converter for PS/2 RealForce R1 keyboards
 
 This is a fork of converter/ibm_terminal.  
-It's based on the PS/2 Scan Code Set 3 and runs on STM32s, tested on a
+It's based on the PS/2 Scan Code Set 2 and runs on STM32s, tested on a
 STM32F103C6T6 Bluepill with a RealForce 89.
 
 # Warning
 At the time of writing, you'd be unable to compile the code with upstream QMK
 due to [this bug](https://github.com/qmk/qmk_firmware/issues/20054), either
 follow the instructions on the issue or wait.  
-Also, currently only alpha keys work properly, mod keys probably need different
-scancodes as they are all over the place.
+Also, currently the pause button doesn't work properly.
 
 ## Connection
 
@@ -45,6 +44,7 @@ The default layout is the normal RealForce 91, change to `-km 89` for the RealFo
 
 ## References
 The code I based this one on: https://github.com/qmk/qmk_firmware/tree/master/keyboards/converter/ibm_terminal  
-Where I got most codes: https://github.com/nsd20463/ps2_kbd_to_usb_adapter/blob/master/keycodes.c  
+Where I got most codes: https://www.win.tue.nl/~aeb/linux/kbd/scancodes-10.html  
+Huge help for converting to Scan Code Set 2: https://github.com/tinkerBOY-git/vial-qmk/blob/dev/keyboards/converter/tinkerboy/ibmpc_usb/matrix.c  
 More info for JIS layouts: http://www.quadibloc.com/comp/scan.htm  
 Special thanks to sigproof from the official QMK Discord for helping me squash some bugs!

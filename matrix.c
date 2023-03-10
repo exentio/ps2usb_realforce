@@ -43,13 +43,37 @@ static void matrix_break(uint8_t code);
  *  0|         |
  *  :|         | 0x00-0x87
  *  ;|         |
- * 18|         |
+ * 17|         |
  *   +---------+
  */
 static uint8_t matrix[MATRIX_ROWS];
 #define ROW(code)      (code>>3)
 #define COL(code)      (code&0x07)
 
+// https://github.com/tinkerBOY-git/vial-qmk/blob/dev/keyboards/converter/tinkerboy/ibmpc_usb/matrix.c
+static uint8_t cs2_e0code(uint8_t code) {
+    switch(code) {
+        case 0x11: return 0x0F; // right alt
+        case 0x14: return 0x17; // right control
+        case 0x1F: return 0x19; // left GUI
+        case 0x27: return 0x1F; // right GUI
+        case 0x2F: return 0x5C; // apps
+        case 0x69: return 0x27; // end
+        case 0x6B: return 0x53; // cursor left
+        case 0x6C: return 0x2F; // home
+        case 0x70: return 0x39; // insert
+        case 0x71: return 0x37; // delete
+        case 0x72: return 0x3F; // cursor down
+        case 0x74: return 0x47; // cursor right
+        case 0x75: return 0x4F; // cursor up
+        case 0x7A: return 0x56; // page down
+        case 0x7D: return 0x5E; // page up
+        case 0x7C: return 0x7F; // Print Screen
+        case 0x7E: return 0x00; // Control'd Pause
+
+        default: return (code & 0x7F);
+    }
+}
 
 __attribute__ ((weak))
 void matrix_init_user(void) {
@@ -73,7 +97,6 @@ void matrix_init(void)
 
 uint8_t matrix_scan(void)
 {
-
     // scan code reading states
     static enum {
         RESET,
@@ -82,7 +105,9 @@ uint8_t matrix_scan(void)
         KBD_ID1,
         CONFIG,
         READY,
+        E0_CODE,
         F0_BREAK,
+        E0_F0_BREAK,
     } state = RESET;
 
     uint8_t code;
@@ -130,16 +155,36 @@ uint8_t matrix_scan(void)
             switch (code) {
                 case 0x00:
                     break;
+                case 0xE0:
+                    state = E0_CODE;
+                    break;
                 case 0xF0:
                     state = F0_BREAK;
                     debug(" ");
                     break;
                 default:    // normal key make
-                    if (code < 0x88) {
+                    if (code == 0x83) // F7
+                        matrix_make(0x02);
+                    else if (code < 0x88) {
                         matrix_make(code);
                     } else {
                         debug("unexpected scan code at READY: "); debug_hex(code); debug("\n");
                     }
+                    state = READY;
+                    debug("\n");
+            }
+            break;
+        case E0_CODE:
+            switch (code) {
+                case 0x00:
+                    break;
+                case 0xF0:
+                    state = E0_F0_BREAK;
+                    debug(" ");
+                    break;
+                default:
+                    if (code < 0x88)
+                        matrix_make(cs2_e0code(code));
                     state = READY;
                     debug("\n");
             }
@@ -149,11 +194,24 @@ uint8_t matrix_scan(void)
                 case 0x00:
                     break;
                 default:
+                    if (code == 0x83) // F7
+                        matrix_break(0x02);
                     if (code < 0x88) {
                         matrix_break(code);
                     } else {
                         debug("unexpected scan code at F0: "); debug_hex(code); debug("\n");
                     }
+                    state = READY;
+                    debug("\n");
+            }
+            break;
+        case E0_F0_BREAK:
+            switch (code) {
+                case 0x00:
+                    break;
+                default:
+                    if (code < 0x88)
+                        matrix_break(cs2_e0code(code));
                     state = READY;
                     debug("\n");
             }

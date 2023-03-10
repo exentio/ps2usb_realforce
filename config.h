@@ -18,5 +18,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 /* matrix size */
-#define MATRIX_ROWS 18  // keycode bit: 3-0
+#define MATRIX_ROWS 17  // keycode bit: 3-0
 #define MATRIX_COLS 8   // keycode bit: 6-4
