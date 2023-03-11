@@ -10,7 +10,6 @@ STM32F103C6T6 Bluepill with a RealForce 89.
 At the time of writing, you'd be unable to compile the code with upstream QMK
 due to [this bug](https://github.com/qmk/qmk_firmware/issues/20054), either
 follow the instructions on the issue or wait.  
-Also, currently the pause button doesn't work properly.
 
 ## Connection
 

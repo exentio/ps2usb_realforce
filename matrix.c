@@ -108,6 +108,14 @@ uint8_t matrix_scan(void)
         E0_CODE,
         F0_BREAK,
         E0_F0_BREAK,
+
+        // welcome to the circus
+        PAUSE_E1,
+        PAUSE_E1_14,
+        PAUSE_E1_F0,
+        PAUSE_E1_F0_14,
+        PAUSE_E1_F0_14_F0,
+
     } state = RESET;
 
     uint8_t code;
@@ -158,25 +166,38 @@ uint8_t matrix_scan(void)
                 case 0xE0:
                     state = E0_CODE;
                     break;
+                case 0xE1:
+                    state = PAUSE_E1;
+                    break;
                 case 0xF0:
                     state = F0_BREAK;
                     debug(" ");
                     break;
                 default:    // normal key make
-                    if (code == 0x83) // F7
+                    state = READY;
+                    debug("\n");
+                    if (code == 0x83) { // F7
                         matrix_make(0x02);
-                    else if (code < 0x88) {
+                        break;
+                    }
+                    if (code == 0x84) { // Alt+PrintScr
+                        matrix_make(0x7F);
+                        break;
+                    }
+                    if (code < 0x88) {
                         matrix_make(code);
                     } else {
                         debug("unexpected scan code at READY: "); debug_hex(code); debug("\n");
                     }
-                    state = READY;
-                    debug("\n");
             }
             break;
         case E0_CODE:
             switch (code) {
                 case 0x00:
+                    break;
+                case 0x12:  // Caused by PrintScr
+                case 0x59:  // idk but another dude ignores this too lol
+                    state = READY;
                     break;
                 case 0xF0:
                     state = E0_F0_BREAK;
@@ -194,20 +215,30 @@ uint8_t matrix_scan(void)
                 case 0x00:
                     break;
                 default:
-                    if (code == 0x83) // F7
+                    state = READY;
+                    debug("\n");
+                    if (code == 0x83) { // F7
                         matrix_break(0x02);
+                        break;
+                    }
+                    if (code == 0x84) { // Alt+PrintScr
+                        matrix_break(0x7F);
+                        break;
+                    }
                     if (code < 0x88) {
                         matrix_break(code);
                     } else {
-                        debug("unexpected scan code at F0: "); debug_hex(code); debug("\n");
+                        debug("unexpected scan code at READY: "); debug_hex(code); debug("\n");
                     }
-                    state = READY;
-                    debug("\n");
             }
             break;
         case E0_F0_BREAK:
             switch (code) {
                 case 0x00:
+                    break;
+                case 0x12:
+                case 0x59:
+                    state = READY;
                     break;
                 default:
                     if (code < 0x88)
@@ -216,6 +247,66 @@ uint8_t matrix_scan(void)
                     debug("\n");
             }
             break;
+
+        // sigh
+        case PAUSE_E1:
+            switch (code) {
+                case 0x00:
+                    break;
+                case 0x14:
+                    state = PAUSE_E1_14;
+                    break;
+                case 0xF0:
+                    state = PAUSE_E1_F0;
+                    break;
+                default:
+                    state = READY;
+            }
+            break;
+        case PAUSE_E1_14:
+            switch (code) {
+                case 0x00:
+                    break;
+                case 0x77:
+                    matrix_make(0x00);
+                default:
+                    state = READY;
+            }
+            break;
+        case PAUSE_E1_F0:
+            switch (code) {
+                case 0x00:
+                    break;
+                case 0x14:
+                    state = PAUSE_E1_F0_14;
+                    break;
+                default:
+                    state = READY;
+            }
+            break;
+        case PAUSE_E1_F0_14:
+            switch (code) {
+                case 0x00:
+                    break;
+                case 0xF0:
+                    state = PAUSE_E1_F0_14_F0;
+                    break;
+                default:
+                    state = READY;
+            }
+            break;
+        case PAUSE_E1_F0_14_F0:
+            switch (code) {
+                case 0x00:
+                    break;
+                case 0x77:
+                    matrix_break(0x00);
+                    break;
+                default:
+                    state = READY;
+            }
+            break;
+
     }
     return 1;
 }
