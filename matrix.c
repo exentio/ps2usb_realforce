@@ -99,11 +99,6 @@ uint8_t matrix_scan(void)
 {
     // scan code reading states
     static enum {
-        RESET,
-        RESET_RESPONSE,
-        KBD_ID0,
-        KBD_ID1,
-        CONFIG,
         READY,
         E0_CODE,
         F0_BREAK,
@@ -116,49 +111,13 @@ uint8_t matrix_scan(void)
         PAUSE_E1_F0_14,
         PAUSE_E1_F0_14_F0,
 
-    } state = RESET;
+    } state = READY;
 
     uint8_t code;
     if ((code = ps2_host_recv())) {
         debug("r"); debug_hex(code); debug(" ");
     }
-
     switch (state) {
-        case RESET:
-            debug("wFF ");
-            if (ps2_host_send(0xFF) == 0xFA) {
-                debug("[ack]\nRESET_RESPONSE: ");
-                state = RESET_RESPONSE;
-            }
-            break;
-        case RESET_RESPONSE:
-            if (code == 0xAA) {
-                debug("[ok]\nKBD_ID: ");
-                state = KBD_ID0;
-            } else if (code) {
-                debug("err\nRESET: ");
-                state = RESET;
-            }
-            break;
-        // after reset receive keyboard ID(2 bytes)
-        case KBD_ID0:
-            if (code) {
-                state = KBD_ID1;
-            }
-            break;
-        case KBD_ID1:
-            if (code) {
-                debug("\nCONFIG: ");
-                state = CONFIG;
-            }
-            break;
-        case CONFIG:
-            debug("wF8 ");
-            if (ps2_host_send(0xF8) == 0xFA) {
-                debug("[ack]\nREADY\n");
-                state = READY;
-            }
-            break;
         case READY:
             switch (code) {
                 case 0x00:
@@ -269,6 +228,8 @@ uint8_t matrix_scan(void)
                     break;
                 case 0x77:
                     matrix_make(0x00);
+                    state = READY;
+                    break;
                 default:
                     state = READY;
             }
@@ -301,6 +262,7 @@ uint8_t matrix_scan(void)
                     break;
                 case 0x77:
                     matrix_break(0x00);
+                    state = READY;
                     break;
                 default:
                     state = READY;
